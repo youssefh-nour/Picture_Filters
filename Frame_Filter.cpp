@@ -3,9 +3,11 @@
 
 using namespace std;
 
-void addFrame(Image& image, int thickness, int r, int g, int b) {
+void AddFrame(Image& image, int thickness, int r, int g, int b) {
+	//loop through each pixel in the image
 	for (int _x = 0;_x < image.width; ++_x) {
 		for (int _y = 0;_y < image.height; ++_y) {
+			//set the pixel to the specified color if it is within the frame thickness
 			if (_x < thickness || _x >= image.width - thickness || _y < thickness || _y >= image.height - thickness) {
 				image(_x, _y, 0) = r;
 				image(_x, _y, 1) = g;
@@ -14,9 +16,12 @@ void addFrame(Image& image, int thickness, int r, int g, int b) {
 		}
 	}
 }
-void addFancyFrame(Image& image, int thickness, int r, int g, int b) {
+
+void AddFancyFrame(Image& image, int thickness, int r, int g, int b) {
+	//loop through each pixel in the image
 	for (int _x = 0;_x < image.width; ++_x) {
 		for (int _y = 0;_y < image.height; ++_y) {
+			//set the pixel to the specified color if it is within the frame thickness, with a white border around the frame
 			if (_x < (thickness + 8) || _x >= image.width - (thickness + 8) || _y < (thickness + 8) || _y >= image.height - (thickness + 8)) {
 				image(_x, _y, 0) = r;
 				image(_x, _y, 1) = g;
@@ -36,7 +41,7 @@ void addFancyFrame(Image& image, int thickness, int r, int g, int b) {
 	}
 }
 
-
+//test
 int main() { 
 	Image image("luffy.jpg");
 	int thickness;
@@ -57,7 +62,7 @@ int main() {
 	cin >> b;
 
 
-	addFancyFrame(image, thickness, r, g, b); 
+	AddFancyFrame(image, thickness, r, g, b); 
 	image.saveImage("fancy.png");
 	
     return 0;

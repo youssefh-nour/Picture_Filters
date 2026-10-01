@@ -2,11 +2,12 @@
 #include "Image_Class.h"
 
 void BlackWhite(Image &img) {
+	//loop through each pixel in the image
 	for (int x = 0;x < img.width;x++) {
 		for (int y = 0;y < img.height;y++) {
 
 			int avg = ((img(x, y, 0) + img(x, y, 1) + img(x, y, 2)) / 3);
-
+			//set the pixel to black or white based on the average value of the pixel
 			if (avg >= 128) {
 				img(x, y, 0) = 255;
 				img(x, y, 1) = 255;

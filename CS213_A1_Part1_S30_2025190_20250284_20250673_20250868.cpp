@@ -1,8 +1,24 @@
+/*
+This is the main file for the image processing program. It includes the necessary header files and defines the main function, 
+which serves as the entry point of the program. The program allows users to load an image, 
+apply various filters and transformations, and save the modified image.
+
+====================================================================================
+======================================Part 1========================================
+Habiba Mohamed Bdawy : 2025190 |||| filter: 1, 5
+Salma Shams:20250284  ||| filter: 2, 6
+Menna Allah Magdy: 20250673 |||| filter: 3, 7
+Youssef Hatem Nour: 20250868 |||| filter: 4, 8
+section: S30
+====================================================================================
+====================================================================================
+*/
+
 #define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include "Image_Class.h"
 #include <fstream>
-//Menu is starting line 180
+
 using namespace std;
 
 void Grayscale(Image& image) {
