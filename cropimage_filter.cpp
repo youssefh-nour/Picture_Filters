@@ -1,3 +1,7 @@
+#include<iostream>
+#include "Image_Class.h"
+
+
 void cropimage(Image& img, int startx, int starty, int new_wid, int new_h) {
 	Image cropped_img(new_wid, new_h);
 	for (int i = 0;i < new_wid;++i) {
