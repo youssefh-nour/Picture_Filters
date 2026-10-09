@@ -75,7 +75,7 @@ void OilPainting(Image& image, int radius) {
 //test
 int main() {
     Image image("luffy.jpg"); // Load an image
-    OilPainting(image, 5); // Apply oil painting effect with radius 3
+    OilPainting(image, 3); // Apply oil painting effect with radius 3
     image.saveImage("OilPainting.jpg"); // Save the result
     return 0;
 }
