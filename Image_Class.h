@@ -13,7 +13,11 @@
 // stb_image header definitions
 #ifndef _IMAGE_CLASS_H
 #define _IMAGE_CLASS_H
-
+#include<cmath>
+#include<cstring>
+#include<vector>
+#include "stb_image.h"
+#include "stb_image_write.h"
 
 #define ll long long
 #define PNG_TYPE 1
@@ -22,14 +26,7 @@
 #define JPG_TYPE 4
 #define UNSUPPORTED_TYPE -1
 
-
-// stb_image header definitions
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
 #define pixel unsigned int
-
 #include <iostream>
 #include <exception>
 
@@ -323,6 +320,370 @@ public:
     unsigned char& operator()(int row, int col, int channel) {
         return getPixel(row, col, channel);
     }
+    // ------------------- Filter Functions -------------------
+
+    void invert_img_fil() {
+        for (int i = 0; i < width; ++i) {
+            for (int j = 0; j < height; ++j) {
+                for (int k = 0; k < 3; ++k) {
+                    (*this)(i, j, k) = 255 - (*this)(i, j, k);
+                }
+            }
+        }
+    }
+
+    void ConvertToBlackAndWhite() {
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                int avg = (((*this)(x, y, 0) + (*this)(x, y, 1) + (*this)(x, y, 2)) / 3);
+                if (avg >= 128) {
+                    (*this)(x, y, 0) = 255;
+                    (*this)(x, y, 1) = 255;
+                    (*this)(x, y, 2) = 255;
+                } else {
+                    (*this)(x, y, 0) = 0;
+                    (*this)(x, y, 1) = 0;
+                    (*this)(x, y, 2) = 0;
+                }
+            }
+        }
+    }
+
+    void lighten_darken_fil(char choice) {
+        for (int i = 0; i < width; ++i) {
+            for (int j = 0; j < height; ++j) {
+                for (int k = 0; k < 3; ++k) {
+                    int newcolor = (*this)(i, j, k);
+                    if (choice == 'L' || choice == 'l')
+                        newcolor = (*this)(i, j, k) * 1.5;
+                    if (choice == 'D' || choice == 'd')
+                        newcolor = ((*this)(i, j, k) * 0.5);
+                    if (newcolor > 255) newcolor = 255;
+                    if (newcolor < 0) newcolor = 0;
+                    (*this)(i, j, k) = newcolor;
+                }
+            }
+        }
+    }
+
+    void RotateImage(int degree) {
+        int loops = degree / 90;
+        for (int k = 0; k < loops; k++) {
+            Image newImg(height, width);
+            for (int x = 0; x < width; x++) {
+                for (int y = 0; y < height; y++) {
+                    int newX = height - 1 - y;
+                    int newY = x;
+                    newImg(newX, newY, 0) = (*this)(x, y, 0);
+                    newImg(newX, newY, 1) = (*this)(x, y, 1);
+                    newImg(newX, newY, 2) = (*this)(x, y, 2);
+                }
+            }
+            *this = newImg;
+        }
+    }
+
+    void cropimage(int startx, int starty, int new_wid, int new_h) {
+        Image cropped_img(new_wid, new_h);
+        for (int i = 0; i < new_wid; ++i) {
+            for (int j = 0; j < new_h; ++j) {
+                for (int k = 0; k < 3; ++k) {
+                    cropped_img(i, j, k) = (*this)(startx + i, starty + j, k);
+                }
+            }
+        }
+        *this = cropped_img;
+    }
+
+    void purple_tint() {
+        for (int i = 0; i < width; ++i) {
+            for (int j = 0; j < height; ++j) {
+                int new_red = (*this)(i, j, 0) * 0.6;
+                int new_green = (*this)(i, j, 1) * 0.4;
+                int new_blue = (*this)(i, j, 2) * 0.9;
+                if (new_blue > 255) new_blue = 255;
+                (*this)(i, j, 0) = new_red;
+                (*this)(i, j, 1) = new_green;
+                (*this)(i, j, 2) = new_blue;
+            }
+        }
+    }
+
+    void detectimageedge() {
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                int avg = ((*this)(x, y, 0) + (*this)(x, y, 1) + (*this)(x, y, 2)) / 3;
+                (*this)(x, y, 0) = avg;
+                (*this)(x, y, 1) = avg;
+                (*this)(x, y, 2) = avg;
+            }
+        }
+        Image edgeimage(width, height);
+        int edgelimit = 30;
+
+        for (int x = 0; x < width - 1; x++) {
+            for (int y = 0; y < height - 1; y++) {
+                int current = (*this)(x, y, 0);
+                int right = (*this)(x + 1, y, 0);
+                int buttom = (*this)(x, y + 1, 0);
+
+                if (abs(current - buttom) > edgelimit || abs(current - right) > edgelimit) {
+                    edgeimage(x, y, 0) = 0;
+                    edgeimage(x, y, 1) = 0;
+                    edgeimage(x, y, 2) = 0;
+                } else {
+                    edgeimage(x, y, 0) = 255;
+                    edgeimage(x, y, 1) = 255;
+                    edgeimage(x, y, 2) = 255;
+                }
+            }
+        }
+        *this = edgeimage;
+    }
+
+    void oldTVFilter() {
+        const int shift = 2;
+        int w = width;
+        int h = height;
+        Image src = *this;
+
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                int xr = std::max(0, x - shift);
+                int xb = std::min(w - 1, x + shift);
+
+                (*this)(x, y, 0) = src(xr, y, 0);
+                (*this)(x, y, 1) = src(x, y, 1);
+                (*this)(x, y, 2) = src(xb, y, 2);
+
+                if (y % 2 == 0) {
+                    (*this)(x, y, 0) = (*this)(x, y, 0) * 3 / 4;
+                    (*this)(x, y, 1) = (*this)(x, y, 1) * 3 / 4;
+                    (*this)(x, y, 2) = (*this)(x, y, 2) * 3 / 4;
+                }
+            }
+        }
+    }
+    // ------------------- Additional Filters -------------------
+
+    void flipHorizontal() {
+        for (int _x = 0; _x < width / 2; ++_x) {
+            for (int _y = 0; _y < height; ++_y) {
+                for (int k = 0; k < 3; ++k) {
+                    unsigned char Htemp = (*this)(_x, _y, k);
+                    (*this)(_x, _y, k) = (*this)(width - 1 - _x, _y, k);
+                    (*this)(width - 1 - _x, _y, k) = Htemp;
+                }
+            }
+        }
+    }
+
+    void flipVertical() {
+        for (int _x = 0; _x < width; ++_x) {
+            for (int _y = 0; _y < height / 2; ++_y) {
+                for (int k = 0; k < 3; ++k) {
+                    unsigned char Vtemp = (*this)(_x, _y, k);
+                    (*this)(_x, _y, k) = (*this)(_x, height - 1 - _y, k);
+                    (*this)(_x, height - 1 - _y, k) = Vtemp;
+                }
+            }
+        }
+    }
+
+    void grayscale() {
+        for (int _x = 0; _x < width; ++_x) {
+            for (int _y = 0; _y < height; ++_y) {
+                int R = (*this)(_x, _y, 0);
+                int G = (*this)(_x, _y, 1);
+                int B = (*this)(_x, _y, 2);
+                int gray = (R + G + B) / 3;
+
+                for (int k = 0; k < 3; ++k) {
+                    (*this)(_x, _y, k) = gray;
+                }
+            }
+        }
+    }
+
+    void mergeImages(const Image& img2) {
+        int newW = std::min(this->width, img2.width);
+        int newH = std::min(this->height, img2.height);
+        Image mergeImage(newW, newH);
+
+        for (int _x = 0; _x < newW; ++_x) {
+            for (int _y = 0; _y < newH; ++_y) {
+                for (int k = 0; k < 3; ++k) {
+                    int result = ((*this)(_x, _y, k) + img2(_x, _y, k)) / 2;
+                    mergeImage(_x, _y, k) = result;
+                }
+            }
+        }
+        *this = mergeImage;
+    }
+
+    void mergeResize(const Image& img2) {
+        int newW = std::max(this->width, img2.width);
+        int newH = std::max(this->height, img2.height);
+        Image mergedImage(newW, newH);
+
+        for (int _x = 0; _x < newW; ++_x) {
+            int x1 = _x * (this->width / (double)newW);
+            int x2 = _x * (img2.width / (double)newW);
+            for (int _y = 0; _y < newH; ++_y) {
+                int y1 = _y * (this->height / (double)newH);
+                int y2 = _y * (img2.height / (double)newH);
+                for (int k = 0; k < 3; ++k) {
+                    int result = ((*this)(x1, y1, k) + img2(x2, y2, k)) / 2;
+                    mergedImage(_x, _y, k) = result;
+                }
+            }
+        }
+        *this = mergedImage;
+    }
+
+    void naturalSunlight() {
+        for (int _x = 0; _x < width; ++_x) {
+            for (int _y = 0; _y < height; ++_y) {
+                int R = (*this)(_x, _y, 0) * 1.2;
+                (*this)(_x, _y, 0) = (R < 255) ? R : 255;
+
+                int G = (*this)(_x, _y, 1) * 1.15;
+                (*this)(_x, _y, 1) = (G < 255) ? G : 255;
+
+                int B = (*this)(_x, _y, 2) * 1.05;
+                (*this)(_x, _y, 2) = (B < 255) ? B : 255;
+            }
+        }
+    }
+
+    void skewImage(double degrees) {
+        double radians = degrees * (3.14159265358979323846 / 180.0);
+        int newW = width + (int)(tan(radians) * (height - 1));
+        int newH = height;
+
+        Image skewedimage(newW, newH);
+
+        for (int _x = 0; _x < newW; ++_x) {
+            for (int _y = 0; _y < newH; ++_y) {
+                for (int k = 0; k < 3; ++k) {
+                    skewedimage(_x, _y, k) = 255;
+                }
+            }
+        }
+
+        for (int _y = 0; _y < height; ++_y) {
+            int shift = (int)(((height - 1) - _y) * tan(radians));
+            for (int _x = 0; _x < width; ++_x) {
+                for (int k = 0; k < 3; ++k) {
+                    skewedimage(_x + shift, _y, k) = (*this)(_x, _y, k);
+                }
+            }
+        }
+        *this = skewedimage;
+    }
+    // ------------------- Frame Filters -------------------
+    void AddFrame(int thickness, int r, int g, int b) {
+        for (int _x = 0; _x < width; ++_x) {
+            for (int _y = 0; _y < height; ++_y) {
+                if (_x < thickness || _x >= width - thickness || _y < thickness || _y >= height - thickness) {
+                    (*this)(_x, _y, 0) = r;
+                    (*this)(_x, _y, 1) = g;
+                    (*this)(_x, _y, 2) = b;
+                }
+            }
+        }
+    }
+
+    void AddFancyFrame(int thickness, int r, int g, int b) {
+        for (int _x = 0; _x < width; ++_x) {
+            for (int _y = 0; _y < height; ++_y) {
+                if (_x < (thickness + 8) || _x >= width - (thickness + 8) || _y < (thickness + 8) || _y >= height - (thickness + 8)) {
+                    (*this)(_x, _y, 0) = r;
+                    (*this)(_x, _y, 1) = g;
+                    (*this)(_x, _y, 2) = b;
+                    if (_x < (thickness + 5) || _x >= width - (thickness + 5) || _y < (thickness + 5) || _y >= height - (thickness + 5)) {
+                        (*this)(_x, _y, 0) = 255;
+                        (*this)(_x, _y, 1) = 255;
+                        (*this)(_x, _y, 2) = 255;
+                        if (_x < thickness || _x >= width - thickness || _y < thickness || _y >= height - thickness) {
+                            (*this)(_x, _y, 0) = r;
+                            (*this)(_x, _y, 1) = g;
+                            (*this)(_x, _y, 2) = b;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // ------------------- Resize Filter -------------------
+    void Resize_Filter(int newHeight, int newWidth) {
+        Image resizedImage(newWidth, newHeight);
+        for (int y = 0; y < newHeight; ++y) {
+            for (int x = 0; x < newWidth; ++x) {
+                int oldX = x * width / newWidth;
+                int oldY = y * height / newHeight;
+
+                if (oldX >= width) oldX = width - 1;
+                if (oldY >= height) oldY = height - 1;
+
+                for (int c = 0; c < 3; ++c) {
+                    resizedImage(x, y, c) = (*this)(oldX, oldY, c);
+                }
+            }
+        }
+        *this = resizedImage;
+    }
+
+    // ------------------- Blur Filter -------------------
+    std::vector<std::vector<long long>> buildBlurTable(int channel) {
+        std::vector<std::vector<long long>> table(height + 1, std::vector<long long>(width + 1, 0));
+        for (int y = 1; y <= height; ++y) {
+            for (int x = 1; x <= width; ++x) {
+                table[y][x] = (*this)(x - 1, y - 1, channel);
+                table[y][x] += table[y - 1][x] + table[y][x - 1] - table[y - 1][x - 1];
+            }
+        }
+        return table;
+    }
+
+    void Blur(int radius) {
+        if (radius <= 0 || radius > std::max(width, height)) return;
+
+        std::vector<std::vector<long long>> tables[3];
+        for (int channel = 0; channel < 3; ++channel) {
+            tables[channel] = buildBlurTable(channel);
+        }
+
+        Image blurredImage(width, height);
+        for (int y = 0; y < height; ++y) {
+            for (int x = 0; x < width; ++x) {
+                int x1 = std::max(0, x - radius);
+                int y1 = std::max(0, y - radius);
+                int x2 = std::min(width - 1, x + radius);
+                int y2 = std::min(height - 1, y + radius);
+
+                for (int channel = 0; channel < 3; ++channel) {
+                    long long sum = tables[channel][y2 + 1][x2 + 1] - tables[channel][y1][x2 + 1] - tables[channel][y2 + 1][x1] + tables[channel][y1][x1];
+                    int count = (x2 - x1 + 1) * (y2 - y1 + 1);
+                    blurredImage(x, y, channel) = static_cast<unsigned char>(sum / count);
+                }
+            }
+        }
+        *this = blurredImage;
+    }
+
+    // ------------------- InfraRed Filter -------------------
+    void InfraRed() {
+        for (int y = 0; y < height; ++y) {
+            for (int x = 0; x < width; ++x) {
+                (*this)(x, y, 0) = 255;
+                (*this)(x, y, 2) = (*this)(x, y, 1);
+            }
+        }
+    }
+
+
 };
 
 #endif // _IMAGE_CLASS_H
