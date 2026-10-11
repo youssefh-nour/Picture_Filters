@@ -682,7 +682,59 @@ public:
             }
         }
     }
+ // ------------------- Oil Painting Filter (Filter 18) -------------------
+    void OilPainting(int radius = 3) {
+        if (radius <= 0 || radius > std::max(width, height)) return;
 
+        Image oilPaintedImage(width, height);
+
+        for (int y = 0; y < height; ++y) {
+            for (int x = 0; x < width; ++x) {
+                int x1 = std::max(0, x - radius);
+                int y1 = std::max(0, y - radius);
+                int x2 = std::min(width - 1, x + radius);
+                int y2 = std::min(height - 1, y + radius);
+
+                std::vector<int> redBuckets(8, 0);
+                std::vector<int> greenBuckets(8, 0);
+                std::vector<int> blueBuckets(8, 0);
+                std::vector<int> countBuckets(8, 0);
+
+                for (int ny = y1; ny <= y2; ++ny) {
+                    for (int nx = x1; nx <= x2; ++nx) {
+                        int red = (*this)(nx, ny, 0);
+                        int green = (*this)(nx, ny, 1);
+                        int blue = (*this)(nx, ny, 2);
+
+                        int bucketIndex = (red + green + blue) / 3 * 8 / 256;
+                        if (bucketIndex > 7) bucketIndex = 7; // حماية من تجاوز أبعاد الفيكتور
+
+                        redBuckets[bucketIndex] += red;
+                        greenBuckets[bucketIndex] += green;
+                        blueBuckets[bucketIndex] += blue;
+                        countBuckets[bucketIndex]++;
+                    }
+                }
+
+                int maxCount = 0;
+                int avgRed = 0, avgGreen = 0, avgBlue = 0;
+
+                for (int i = 0; i < 8; ++i) {
+                    if (countBuckets[i] > maxCount) {
+                        maxCount = countBuckets[i];
+                        avgRed = redBuckets[i] / maxCount;
+                        avgGreen = greenBuckets[i] / maxCount;
+                        avgBlue = blueBuckets[i] / maxCount;
+                    }
+                }
+
+                oilPaintedImage(x, y, 0) = avgRed;
+                oilPaintedImage(x, y, 1) = avgGreen;
+                oilPaintedImage(x, y, 2) = avgBlue;
+            }
+        }
+        *this = oilPaintedImage;
+    }
 
 };
 
