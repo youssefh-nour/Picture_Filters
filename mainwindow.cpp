@@ -219,4 +219,12 @@ void MainWindow::on_btninfrared_clicked()
     currentImage.InfraRed();
     updateDisplayedImage();
 }
-
+void MainWindow::on_btnoilpainting_clicked()
+{
+    bool ok;
+    int radius = QInputDialog::getInt(this, "Oil Painting Filter", "Enter Radius Intensity (1 - 10):", 3, 1, 10, 1, &ok);
+    if (ok) {
+        currentImage.OilPainting(radius);
+        updateDisplayedImage();
+    }
+}
