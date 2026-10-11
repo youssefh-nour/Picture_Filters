@@ -291,6 +291,19 @@
     </property>
    </widget>
   </widget>
+<widget class="QPushButton" name="btnOilPainting">
+    <property name="geometry">
+     <rect>
+      <x>550</x>
+      <y>440</y>
+      <width>110</width>
+      <height>29</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Oil Painting</string>
+    </property>
+   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
