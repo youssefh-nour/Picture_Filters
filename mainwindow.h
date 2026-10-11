@@ -60,6 +60,9 @@ private slots:
 
     void on_btninfrared_clicked();
 
+   void on_btnoilpainting_clicked();
+
+
 private:
     Ui::MainWindow *ui;
     Image currentImage;    // تعريف كائن الصورة
