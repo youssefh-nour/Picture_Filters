@@ -55,14 +55,14 @@ void MainWindow::on_btnSave_clicked()
 
 void MainWindow::on_btnBW_clicked()
 {
-    currentImage.invert_img_fil();
+    currentImage.ConvertToBlackAndWhite();
     updateDisplayedImage();
 }
 
 
 void MainWindow::on_btnInvert_clicked()
 {
-    currentImage.ConvertToBlackAndWhite();
+    currentImage.invert_img_fil();
     updateDisplayedImage();
 
 }
