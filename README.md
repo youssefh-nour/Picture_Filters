@@ -12,8 +12,8 @@ The project has two parts:
 Name -	ID -	Lab
 Habiba Mohamed Ahmed - 20250190	- 29,30
 Youssef Hatem Nour -	20250868 - 32
-Menna Allah Magdy	- 20250284 - 29,30
-Salma Shams -	20250673 - 29,30
+Menna Allah Magdy	- 20250673 - 29,30
+Salma Shams -	20250284 - 29,30
 
 ## Who did what
 
